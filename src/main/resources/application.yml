@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/online_market
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: 2001
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      
+      hibernate:
+        format_sql: true
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+
+springdoc:
+  swagger-ui:
+    path: swagger-ui
+  api-docs:
+    path: /api-docs

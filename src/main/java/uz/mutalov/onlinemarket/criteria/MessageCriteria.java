@@ -4,13 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import uz.mutalov.onlinemarket.criteria.base.AbstractCriteria;
+import uz.mutalov.onlinemarket.criteria.base.BaseCriteria;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductCriteria extends AbstractCriteria {
-    private String category;
-    private String name;
+public class MessageCriteria implements BaseCriteria {
+    private String text;
 }

@@ -21,7 +21,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/auth/")
 @Slf4j
-public class AuthUserController extends AbstractController<AuthUserService> implements GenericCrudController<
+public class AuthUserController extends AbstractController<AuthUserService> implements GenericCrudController<AuthUserDTO,
         AuthUserCreateDTO, AuthUserUpdateDTO>, GenericController<AuthUserDTO, AuthUserCriteria> {
 
     private final AuthService authService;
@@ -33,7 +33,7 @@ public class AuthUserController extends AbstractController<AuthUserService> impl
 
     @Override
     @PostMapping("/create")
-    public ResponseEntity<DataDTO<Long>> create(@RequestBody AuthUserCreateDTO dto) {
+    public ResponseEntity<DataDTO<AuthUserDTO>> create(@RequestBody AuthUserCreateDTO dto) {
         log.info("Request for User Create");
         return service.create(dto);
     }
@@ -41,7 +41,7 @@ public class AuthUserController extends AbstractController<AuthUserService> impl
 
     @Override
     @PostMapping("/update")
-    public ResponseEntity<DataDTO<Long>> update(@RequestBody AuthUserUpdateDTO dto) {
+    public ResponseEntity<DataDTO<AuthUserDTO>> update(@RequestBody AuthUserUpdateDTO dto) {
         log.info("Request to User Update");
         return service.update(dto);
     }
@@ -81,13 +81,13 @@ public class AuthUserController extends AbstractController<AuthUserService> impl
     }
 
     @PostMapping(value = "/save-to-cart")
-    public ResponseEntity<DataDTO<Boolean>> saveProductToCart(@RequestBody CartCreateDTO dto) {
+    public ResponseEntity<DataDTO<AuthUserDTO>> saveProductToCart(@RequestBody CartCreateDTO dto) {
         log.info("Request to User saveProductToCart");
         return service.saveProductToCart(dto);
     }
 
     @PostMapping(value = "/remove-to-cart/{id}")
-    public ResponseEntity<DataDTO<Boolean>> removeProductFromCart(@PathVariable Integer id) {
+    public ResponseEntity<DataDTO<Integer>> removeProductFromCart(@PathVariable Integer id) {
         log.info("Request to Product from User Cart");
         return service.removeProductFromCart(id);
     }

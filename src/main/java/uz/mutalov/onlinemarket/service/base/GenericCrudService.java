@@ -6,12 +6,13 @@ import uz.mutalov.onlinemarket.response.DataDTO;
 import uz.mutalov.onlinemarket.response.ResponseEntity;
 
 public interface GenericCrudService<
+        D extends GenericDTO,
         CD extends BaseDTO,
-        UD extends GenericDTO> extends BaseService{
+        UD extends GenericDTO> extends BaseService {
 
-    ResponseEntity<DataDTO<Long>> create(CD dto);
+    ResponseEntity<DataDTO<D>> create(CD dto);
 
-    ResponseEntity<DataDTO<Long>> update(UD dto);
+    ResponseEntity<DataDTO<D>> update(UD dto);
 
     ResponseEntity<DataDTO<Long>> delete(Long dto);
 }

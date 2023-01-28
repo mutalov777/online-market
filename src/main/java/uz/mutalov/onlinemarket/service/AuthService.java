@@ -24,17 +24,18 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MimeTypeUtils;
 import uz.mutalov.onlinemarket.config.security.utils.JWTUtils;
+import uz.mutalov.onlinemarket.dto.auth.AuthUserDTO;
 import uz.mutalov.onlinemarket.dto.auth.LoginDTO;
 import uz.mutalov.onlinemarket.dto.auth.SessionDTO;
 import uz.mutalov.onlinemarket.entity.AuthUser;
 import uz.mutalov.onlinemarket.exceptions.NotFoundException;
+import uz.mutalov.onlinemarket.mappers.AuthUserMapper;
 import uz.mutalov.onlinemarket.property.ServerProperties;
 import uz.mutalov.onlinemarket.repository.AuthUserRepository;
 import uz.mutalov.onlinemarket.response.AppErrorDTO;
 import uz.mutalov.onlinemarket.response.DataDTO;
 import uz.mutalov.onlinemarket.response.ResponseEntity;
 import uz.mutalov.onlinemarket.service.base.BaseService;
-
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -55,10 +56,13 @@ public class AuthService implements UserDetailsService, BaseService {
     private final ServerProperties serverProperties;
     private final ObjectMapper objectMapper;
 
-    public AuthService(AuthUserRepository repository, ServerProperties serverProperties, ObjectMapper objectMapper) {
+    private final AuthUserMapper mapper;
+
+    public AuthService(AuthUserRepository repository, ServerProperties serverProperties, ObjectMapper objectMapper, AuthUserMapper mapper) {
         this.repository = repository;
         this.serverProperties = serverProperties;
         this.objectMapper = objectMapper;
+        this.mapper = mapper;
     }
 
 
@@ -75,6 +79,9 @@ public class AuthService implements UserDetailsService, BaseService {
             if (json_auth.has("success") && json_auth.get("success").asBoolean()) {
                 JsonNode node = json_auth.get("data");
                 SessionDTO sessionDTO = objectMapper.readValue(node.toString(), SessionDTO.class);
+                AuthUser user = getUserByUsername(dto.getEmail());
+                AuthUserDTO authUserDTO = mapper.toDTO(user);
+                sessionDTO.setUser(authUserDTO);
                 return new ResponseEntity<>(new DataDTO<>(sessionDTO));
             }
             return new ResponseEntity<>(new DataDTO<>(objectMapper.readValue(json_auth.get("error").toString(),

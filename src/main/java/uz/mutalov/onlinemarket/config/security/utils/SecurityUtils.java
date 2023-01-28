@@ -12,9 +12,9 @@ public class SecurityUtils {
             "/otp/**",
             "/swagger-ui/**",
             "/api-docs/**",
-            "/category/get",
+            "/category/get/**",
             "/category/get-list",
-            "/product/get",
+            "/product/get/**",
             "/product/get-list"
     };
 

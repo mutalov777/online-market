@@ -13,6 +13,7 @@ import java.io.Serializable;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SessionDTO implements Serializable {
 
+    private AuthUserDTO user;
     private Long accessTokenExpiry;
 
     private Long refreshTokenExpiry;

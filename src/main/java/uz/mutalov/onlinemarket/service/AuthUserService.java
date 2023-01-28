@@ -28,7 +28,7 @@ import java.util.List;
 
 @Service
 public class AuthUserService extends AbstractService<AuthUserRepository, AuthUserMapper>
-        implements GenericCrudService<AuthUserCreateDTO, AuthUserUpdateDTO>, GenericService<AuthUserDTO, AbstractCriteria> {
+        implements GenericCrudService<AuthUserDTO, AuthUserCreateDTO, AuthUserUpdateDTO>, GenericService<AuthUserDTO, AbstractCriteria> {
 
     private final PasswordEncoder passwordEncoder;
 
@@ -43,19 +43,21 @@ public class AuthUserService extends AbstractService<AuthUserRepository, AuthUse
     }
 
     @Override
-    public ResponseEntity<DataDTO<Long>> create(AuthUserCreateDTO dto) {
+    public ResponseEntity<DataDTO<AuthUserDTO>> create(AuthUserCreateDTO dto) {
         AuthUser authUser = mapper.fromCreateDTO(dto);
         authUser.setPassword(passwordEncoder.encode(dto.getPassword()));
         AuthUser save = repository.save(authUser);
-        return new ResponseEntity<>(new DataDTO<>(save.getId()));
+        AuthUserDTO authUserDTO = mapper.toDTO(save);
+        return new ResponseEntity<>(new DataDTO<>(authUserDTO));
     }
 
     @Override
-    public ResponseEntity<DataDTO<Long>> update(AuthUserUpdateDTO dto) {
+    public ResponseEntity<DataDTO<AuthUserDTO>> update(AuthUserUpdateDTO dto) {
         AuthUser user = getAuthUserById(dto.getId());
         AuthUser authUser = mapper.fromUpdateDTO(dto, user);
         AuthUser save = repository.save(authUser);
-        return new ResponseEntity<>(new DataDTO<>(save.getId()));
+        AuthUserDTO authUserDTO = mapper.toDTO(save);
+        return new ResponseEntity<>(new DataDTO<>(authUserDTO));
     }
 
     @Override
@@ -81,12 +83,12 @@ public class AuthUserService extends AbstractService<AuthUserRepository, AuthUse
         return new ResponseEntity<>(new DataDTO<>(authUserDTOS, authUserDTOS.size()));
     }
 
-    private AuthUser getAuthUserById(Long id) {
+    public AuthUser getAuthUserById(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User not found"));
     }
 
-    public ResponseEntity<DataDTO<Boolean>> saveProductToCart(CartCreateDTO dto) {
+    public ResponseEntity<DataDTO<AuthUserDTO>> saveProductToCart(CartCreateDTO dto) {
         Product product = productRepository.findById(dto.getProductId())
                 .orElseThrow(() -> new NotFoundException("Product not found"));
         AuthUser user = getAuthUserByEmail();
@@ -94,21 +96,22 @@ public class AuthUserService extends AbstractService<AuthUserRepository, AuthUse
         List<Cart> carts = user.getCarts();
         carts.add(cart);
         user.setCarts(carts);
-        repository.save(user);
-        return new ResponseEntity<>(new DataDTO<>(true));
+        AuthUser save = repository.save(user);
+        AuthUserDTO authUserDTO = mapper.toDTO(save);
+        return new ResponseEntity<>(new DataDTO<>(authUserDTO));
     }
 
-    public ResponseEntity<DataDTO<Boolean>> removeProductFromCart(Integer id) {
+    public ResponseEntity<DataDTO<Integer>> removeProductFromCart(Integer id) {
         AuthUser user = getAuthUserByEmail();
         List<Cart> carts = user.getCarts();
         carts.removeIf(cart -> cart.getId().equals(id));
         user.setCarts(carts);
         repository.save(user);
         cartRepository.deleteById(id);
-        return new ResponseEntity<>(new DataDTO<>(true));
+        return new ResponseEntity<>(new DataDTO<>(id));
     }
 
-    private AuthUser getAuthUserByEmail() {
+    public AuthUser getAuthUserByEmail() {
         String email = SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
         return repository
                 .findByEmail(email)

@@ -20,13 +20,14 @@ import uz.mutalov.onlinemarket.service.base.AbstractService;
 import uz.mutalov.onlinemarket.service.base.GenericCrudService;
 import uz.mutalov.onlinemarket.service.base.GenericService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 @Service
 public class ProductService extends AbstractService<ProductRepository, ProductMapper>
         implements GenericService<ProductDTO, ProductCriteria>,
-        GenericCrudService<ProductCreateDTO, ProductUpdateDTO> {
+        GenericCrudService<ProductDTO, ProductCreateDTO, ProductUpdateDTO> {
     private final CategoryRepository categoryRepository;
 
     public ProductService(ProductRepository repository,
@@ -37,16 +38,17 @@ public class ProductService extends AbstractService<ProductRepository, ProductMa
     }
 
     @Override
-    public ResponseEntity<DataDTO<Long>> create(ProductCreateDTO dto) {
+    public ResponseEntity<DataDTO<ProductDTO>> create(ProductCreateDTO dto) {
         ProductCategory category = getCategoryByName(dto.getCategory());
         Product product = mapper.fromCreateDTO(dto);
         product.setCategory(category);
         Product save = repository.save(product);
-        return new ResponseEntity<>(new DataDTO<>(save.getId()));
+        ProductDTO productDTO = mapper.toDTO(save);
+        return new ResponseEntity<>(new DataDTO<>(productDTO));
     }
 
     @Override
-    public ResponseEntity<DataDTO<Long>> update(ProductUpdateDTO dto) {
+    public ResponseEntity<DataDTO<ProductDTO>> update(ProductUpdateDTO dto) {
         Product product = getProductById(dto.getId());
         Product updatedProduct = mapper.fromUpdateDTO(dto, product);
         ProductCategory category;
@@ -55,7 +57,8 @@ public class ProductService extends AbstractService<ProductRepository, ProductMa
             updatedProduct.setCategory(category);
         }
         Product save = repository.save(updatedProduct);
-        return new ResponseEntity<>(new DataDTO<>(save.getId()));
+        ProductDTO productDTO = mapper.toDTO(save);
+        return new ResponseEntity<>(new DataDTO<>(productDTO));
     }
 
     @Override
@@ -77,8 +80,11 @@ public class ProductService extends AbstractService<ProductRepository, ProductMa
         List<Product> products;
         Pageable of = PageRequest.of(criteria.getPage(), criteria.getSize());
         if (Objects.nonNull(criteria.getCategory())) {
-            products = repository.findAllByCategoryName(criteria.getCategory(),of)
-                    .orElseThrow(()->new NotFoundException("Product not found by this criteria"));
+            products=repository.findAllByCategoryName(criteria.getCategory(), of)
+                    .orElseThrow(() -> new NotFoundException("Product not found by this criteria"));
+        } else if (Objects.nonNull(criteria.getName())) {
+            products = repository.findAllByName(criteria.getName(), of)
+                    .orElseThrow(() -> new NotFoundException("Product not found by this criteria"));
         } else {
             products = repository.findAll(of).getContent();
         }

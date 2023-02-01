@@ -7,7 +7,10 @@ import lombok.Setter;
 import org.hibernate.annotations.Where;
 import uz.mutalov.onlinemarket.entity.base.Auditable;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.ManyToOne;
 
 @Getter
 @Setter
@@ -29,9 +32,8 @@ public class Product extends Auditable {
     @Column
     private Integer count;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private ProductCategory category;
-
     @Column
     private String photo;
 

@@ -19,5 +19,4 @@ public class ProductCategoryUpdateDTO implements BaseDTO {
 
     private String photo;
 
-    private List<String> groups;
 }

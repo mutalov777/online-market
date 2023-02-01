@@ -20,12 +20,12 @@ public class CategoryController extends AbstractController<ProductCategoryServic
     }
 
     @PostMapping("/create")
-    public ResponseEntity<DataDTO<Integer>> create(@RequestBody ProductCategoryCreateDTO dto) {
+    public ResponseEntity<DataDTO<ProductCategoryDTO>> create(@RequestBody ProductCategoryCreateDTO dto) {
         return service.create(dto);
     }
 
     @PutMapping("/update")
-    public ResponseEntity<DataDTO<Integer>> update(@RequestBody ProductCategoryUpdateDTO dto) {
+    public ResponseEntity<DataDTO<ProductCategoryDTO>> update(@RequestBody ProductCategoryUpdateDTO dto) {
         return service.update(dto);
     }
 
@@ -37,5 +37,10 @@ public class CategoryController extends AbstractController<ProductCategoryServic
     @GetMapping("/get-list")
     public ResponseEntity<DataDTO<List<ProductCategoryDTO>>> getALl() {
         return service.getAll();
+    }
+
+    @GetMapping("/get-category-name/{name}")
+    public ResponseEntity<DataDTO<List<String>>> getCategoryByName(@PathVariable String name) {
+        return service.getCategoryByName(name);
     }
 }

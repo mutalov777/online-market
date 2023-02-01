@@ -2,7 +2,6 @@ package uz.mutalov.onlinemarket.service;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import uz.mutalov.onlinemarket.service.base.AbstractService;
 import uz.mutalov.onlinemarket.dto.category.ProductCategoryCreateDTO;
 import uz.mutalov.onlinemarket.dto.category.ProductCategoryDTO;
 import uz.mutalov.onlinemarket.dto.category.ProductCategoryUpdateDTO;
@@ -12,9 +11,9 @@ import uz.mutalov.onlinemarket.mappers.CategoryMapper;
 import uz.mutalov.onlinemarket.repository.CategoryRepository;
 import uz.mutalov.onlinemarket.response.DataDTO;
 import uz.mutalov.onlinemarket.response.ResponseEntity;
+import uz.mutalov.onlinemarket.service.base.AbstractService;
 
 import java.util.List;
-import java.util.Objects;
 
 @Service
 public class ProductCategoryService extends AbstractService<CategoryRepository, CategoryMapper> {
@@ -25,26 +24,25 @@ public class ProductCategoryService extends AbstractService<CategoryRepository, 
     }
 
 
-    public ResponseEntity<DataDTO<Integer>> create(ProductCategoryCreateDTO dto) {
+    public ResponseEntity<DataDTO<ProductCategoryDTO>> create(ProductCategoryCreateDTO dto) {
         ProductCategory productCategory = mapper.fromCreateDTO(dto);
-        ProductCategory productCategory1 = setCategoryGroup(dto.getGroups(), productCategory);
-        ProductCategory save = repository.save(productCategory1);
-        return new ResponseEntity<>(new DataDTO<>(save.getId()));
+        ProductCategory save = repository.save(productCategory);
+        ProductCategoryDTO productCategoryDTO = mapper.toDTO(save);
+        return new ResponseEntity<>(new DataDTO<>(productCategoryDTO));
     }
 
 
-    public ResponseEntity<DataDTO<Integer>> update(ProductCategoryUpdateDTO dto) {
+    public ResponseEntity<DataDTO<ProductCategoryDTO>> update(ProductCategoryUpdateDTO dto) {
         ProductCategory category = getCategoryById(dto.getId());
         ProductCategory productCategory = mapper.fromUpdateDTO(dto, category);
-        ProductCategory productCategory1 = setCategoryGroup(dto.getGroups(), productCategory);
-        ProductCategory save = repository.save(productCategory1);
-        return new ResponseEntity<>(new DataDTO<>(save.getId()));
+        ProductCategory save = repository.save(productCategory);
+        ProductCategoryDTO productCategoryDTO = mapper.toDTO(save);
+        return new ResponseEntity<>(new DataDTO<>(productCategoryDTO));
     }
 
 
     public ResponseEntity<DataDTO<Integer>> delete(Integer id) {
-        ProductCategory categoryById = getCategoryById(id);
-        repository.delete(categoryById);
+        repository.deleteById(id);
         return new ResponseEntity<>(new DataDTO<>(id));
     }
 
@@ -59,14 +57,8 @@ public class ProductCategoryService extends AbstractService<CategoryRepository, 
                 .findById(id).orElseThrow(() -> new NotFoundException("Category Not Found"));
     }
 
-    private ProductCategory setCategoryGroup(List<String> groups, ProductCategory category) {
-        if (Objects.isNull(groups)) {
-            return category;
-        }
-        groups
-                .stream()
-                .map(item -> repository.findByName(item).orElseThrow(() -> new NotFoundException("Category Not Found")))
-                .forEach(f -> category.getGroups().add(f));
-        return category;
+    public ResponseEntity<DataDTO<List<String>>> getCategoryByName(String name) {
+        List<String> names = repository.findNameStartWith(name.toUpperCase() + "%");
+        return new ResponseEntity<>(new DataDTO<>(names));
     }
 }

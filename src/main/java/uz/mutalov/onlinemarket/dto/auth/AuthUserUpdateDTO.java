@@ -20,4 +20,6 @@ public class AuthUserUpdateDTO extends GenericDTO {
     private String email;
 
     private String password;
+
+    private String phone;
 }

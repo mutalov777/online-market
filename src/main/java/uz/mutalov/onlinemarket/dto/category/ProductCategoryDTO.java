@@ -18,5 +18,4 @@ public class ProductCategoryDTO extends GenericDTO {
 
     private String photo;
 
-    private List<String> groups;
 }

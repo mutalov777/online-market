@@ -25,6 +25,8 @@ public class AuthUser extends Auditable {
     @Column(nullable = false, unique = true)
     private String email;
 
+    private String phone;
+
     @Column(nullable = false)
     private String password;
 

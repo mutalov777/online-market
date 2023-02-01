@@ -15,7 +15,6 @@ import javax.validation.constraints.Email;
 public class AuthUserCreateDTO implements BaseDTO {
 
     private String fullName;
-
     @Email
     private String email;
 

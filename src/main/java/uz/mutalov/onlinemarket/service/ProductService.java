@@ -1,5 +1,6 @@
 package uz.mutalov.onlinemarket.service;
 
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,7 +21,6 @@ import uz.mutalov.onlinemarket.service.base.AbstractService;
 import uz.mutalov.onlinemarket.service.base.GenericCrudService;
 import uz.mutalov.onlinemarket.service.base.GenericService;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -39,25 +39,25 @@ public class ProductService extends AbstractService<ProductRepository, ProductMa
 
     @Override
     public ResponseEntity<DataDTO<ProductDTO>> create(ProductCreateDTO dto) {
-        ProductCategory category = getCategoryByName(dto.getCategory());
         Product product = mapper.fromCreateDTO(dto);
-        product.setCategory(category);
-        Product save = repository.save(product);
-        ProductDTO productDTO = mapper.toDTO(save);
+        ProductDTO productDTO = saveProductCategory(product, dto.getCategory());
         return new ResponseEntity<>(new DataDTO<>(productDTO));
     }
 
+    private ProductDTO saveProductCategory(Product product, String category) {
+        if (Objects.nonNull(category)) {
+            ProductCategory productCategory = categoryRepository.findByName(category)
+                    .orElseThrow(() -> new NotFoundException("Category not found"));
+            productCategory.addProducts(product);
+            categoryRepository.save(productCategory);
+        }
+        return mapper.toDTO(product);
+    }
     @Override
     public ResponseEntity<DataDTO<ProductDTO>> update(ProductUpdateDTO dto) {
         Product product = getProductById(dto.getId());
         Product updatedProduct = mapper.fromUpdateDTO(dto, product);
-        ProductCategory category;
-        if (Objects.nonNull(dto.getCategory())) {
-            category = getCategoryByName(dto.getCategory());
-            updatedProduct.setCategory(category);
-        }
-        Product save = repository.save(updatedProduct);
-        ProductDTO productDTO = mapper.toDTO(save);
+        ProductDTO productDTO = saveProductCategory(updatedProduct, dto.getCategory());
         return new ResponseEntity<>(new DataDTO<>(productDTO));
     }
 
@@ -80,7 +80,7 @@ public class ProductService extends AbstractService<ProductRepository, ProductMa
         List<Product> products;
         Pageable of = PageRequest.of(criteria.getPage(), criteria.getSize());
         if (Objects.nonNull(criteria.getCategory())) {
-            products=repository.findAllByCategoryName(criteria.getCategory(), of)
+            products = repository.findAllByCategoryName(criteria.getCategory(), of)
                     .orElseThrow(() -> new NotFoundException("Product not found by this criteria"));
         } else if (Objects.nonNull(criteria.getName())) {
             products = repository.findAllByName(criteria.getName(), of)
@@ -96,12 +96,5 @@ public class ProductService extends AbstractService<ProductRepository, ProductMa
     private Product getProductById(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Product not found"));
-    }
-
-
-    private ProductCategory getCategoryByName(String dto) {
-        return categoryRepository
-                .findByName(dto)
-                .orElseThrow(() -> new NotFoundException("Category not found"));
     }
 }

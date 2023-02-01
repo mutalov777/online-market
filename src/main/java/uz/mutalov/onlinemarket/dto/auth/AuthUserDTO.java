@@ -17,10 +17,10 @@ import java.util.List;
 public class AuthUserDTO extends GenericDTO {
 
     private String fullName;
-
     @Email
     private String email;
 
+    private String phone;
     private String role;
 
     private List<CartDTO> carts;

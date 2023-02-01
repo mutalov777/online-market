@@ -19,12 +19,19 @@ public class ProductCategory implements BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
     @Column(unique = true)
     private String name;
-
     private String photo;
+    @OneToMany(mappedBy = "category",fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Product> products;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    private List<ProductCategory> groups;
+    public void addProducts(Product product) {
+        this.products.add(product);
+        product.setCategory(this);
+    }
+
+    public void removeProducts(Product product) {
+        this.products.remove(product);
+        product.setCategory(null);
+    }
 }

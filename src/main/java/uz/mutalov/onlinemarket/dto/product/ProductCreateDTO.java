@@ -11,19 +11,12 @@ import uz.mutalov.onlinemarket.dto.base.BaseDTO;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductCreateDTO implements BaseDTO {
-
     private String name;
-
     private Integer price;
-
     private String description;
-
     private Integer count;
-
     private String category;
-
     private String photo;
-
     private Boolean isCount;
 
 }

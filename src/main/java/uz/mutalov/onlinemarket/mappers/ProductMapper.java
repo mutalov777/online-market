@@ -17,11 +17,9 @@ import java.util.List;
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface ProductMapper extends GenericMapper<Product, ProductDTO, ProductCreateDTO, ProductUpdateDTO> {
     @Override
-    @Mapping(target = "category", ignore = true)
     Product fromCreateDTO(ProductCreateDTO dto);
 
     @Override
-    @Mapping(target = "category", ignore = true)
     Product fromUpdateDTO(ProductUpdateDTO dto, @MappingTarget Product entity);
     @Override
     ProductDTO toDTO(Product entity);

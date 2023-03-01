@@ -14,19 +14,20 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.util.MimeTypeUtils;
 import uz.mutalov.onlinemarket.config.security.utils.JWTUtils;
 import uz.mutalov.onlinemarket.dto.auth.AuthUserDTO;
 import uz.mutalov.onlinemarket.dto.auth.LoginDTO;
 import uz.mutalov.onlinemarket.dto.auth.SessionDTO;
+import uz.mutalov.onlinemarket.dto.message.MessageShortDTO;
 import uz.mutalov.onlinemarket.entity.AuthUser;
 import uz.mutalov.onlinemarket.exceptions.NotFoundException;
 import uz.mutalov.onlinemarket.mappers.AuthUserMapper;
@@ -38,12 +39,11 @@ import uz.mutalov.onlinemarket.response.ResponseEntity;
 import uz.mutalov.onlinemarket.service.base.BaseService;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
@@ -51,14 +51,16 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 @Slf4j
 @Service
 public class AuthService implements UserDetailsService, BaseService {
-
+    @Qualifier("sessionRegistry")
+    private final SessionRegistry sessionRegistry;
     private final AuthUserRepository repository;
     private final ServerProperties serverProperties;
     private final ObjectMapper objectMapper;
 
     private final AuthUserMapper mapper;
 
-    public AuthService(AuthUserRepository repository, ServerProperties serverProperties, ObjectMapper objectMapper, AuthUserMapper mapper) {
+    public AuthService(SessionRegistry sessionRegistry, AuthUserRepository repository, ServerProperties serverProperties, ObjectMapper objectMapper, @Qualifier("authUserMapperImpl") AuthUserMapper mapper) {
+        this.sessionRegistry = sessionRegistry;
         this.repository = repository;
         this.serverProperties = serverProperties;
         this.objectMapper = objectMapper;
@@ -95,7 +97,7 @@ public class AuthService implements UserDetailsService, BaseService {
     }
 
 
-    public ResponseEntity<DataDTO<SessionDTO>> getRefreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public ResponseEntity<DataDTO<SessionDTO>> getRefreshToken(HttpServletRequest request) {
         String authorizationHeader = request.getHeader(AUTHORIZATION);
         if (authorizationHeader != null && authorizationHeader.startsWith(JWTUtils.BEARER)) {
             try {
@@ -103,41 +105,42 @@ public class AuthService implements UserDetailsService, BaseService {
                 Algorithm algorithm = JWTUtils.getAlgorithm();
                 JWTVerifier verifier = JWT.require(algorithm).build();
                 DecodedJWT decodedJWT = verifier.verify(refresh_token);
-                String phoneNumber = decodedJWT.getSubject();
-                AuthUser user = getUserByUsername(phoneNumber);
+                String email = decodedJWT.getSubject();
+                AuthUser user = getUserByUsername(email);
                 String access_token = JWT.create()
                         .withSubject(user.getEmail())
                         .withExpiresAt(JWTUtils.getExpiry())
                         .withIssuer(request.getRequestURL().toString())
                         .withClaim("roles", Collections.singletonList(user.getRole().name()))
                         .sign(algorithm);
-                Map<String, String> tokens = new HashMap<>();
-                tokens.put("access_token", access_token);
-                tokens.put("refresh_token", refresh_token);
-                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                new ObjectMapper().writeValue(response.getOutputStream(), tokens);
                 SessionDTO sessionDTO = SessionDTO.builder()
                         .refreshToken(refresh_token)
                         .accessToken(access_token)
+                        .issuedAt(System.currentTimeMillis())
+                        .refreshTokenExpiry(JWTUtils.getExpiryForRefreshToken().getTime())
+                        .accessTokenExpiry(JWTUtils.getExpiry().getTime())
+                        .user(mapper.toDTO(user))
                         .build();
                 return new ResponseEntity<>(new DataDTO<>(sessionDTO));
             } catch (Exception exception) {
-                response.setHeader("error", exception.getMessage());
-                response.setStatus(HttpStatus.FORBIDDEN.value());
-                Map<String, String> error = new HashMap<>();
-                error.put("error_message", exception.getMessage());
-                response.setContentType(MimeTypeUtils.APPLICATION_JSON_VALUE);
-                new ObjectMapper().writeValue(response.getOutputStream(), error);
+                return new ResponseEntity<>(new DataDTO<>(new AppErrorDTO(HttpStatus.FORBIDDEN, exception.getMessage(), request)));
             }
         } else {
             return new ResponseEntity<>(new DataDTO<>(new AppErrorDTO(HttpStatus.NOT_FOUND, "Not Found")));
         }
-        return null;
     }
 
+    public ResponseEntity<DataDTO<List<MessageShortDTO>>> getOnlineUsers() {
+        List<MessageShortDTO> messageShortDTOS = sessionRegistry
+                .getAllPrincipals()
+                .stream()
+                .map(principal -> repository.findAllByRoleUser(principal.toString()).orElse(null)).filter(Objects::nonNull)
+                .map(user -> new MessageShortDTO(0, user.getId(), user.getFullName()))
+                .toList();
+        return new ResponseEntity<>(new DataDTO<>(messageShortDTOS, (long) messageShortDTOS.size()));
+    }
 
     public AuthUser getUserByUsername(String phoneNumber) {
-        log.info("Getting user by phone number : {}", phoneNumber);
         return getOptionalByPhoneNumber(phoneNumber).orElseThrow(() -> new NotFoundException("User is not found"));
     }
 

@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.context.request.WebRequest;
 
+import javax.servlet.http.HttpServletRequest;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
@@ -27,6 +28,13 @@ public class AppErrorDTO {
     }
     @Builder(builderMethodName = "firstBuilder")
     public AppErrorDTO(HttpStatus status, String message, WebRequest request) {
+        this.timestamp = Timestamp.valueOf(LocalDateTime.now());
+        this.status = status.value();
+        this.error = status.getReasonPhrase();
+        this.message = message;
+        this.path = request.getContextPath();
+    }
+    public AppErrorDTO(HttpStatus status, String message, HttpServletRequest request) {
         this.timestamp = Timestamp.valueOf(LocalDateTime.now());
         this.status = status.value();
         this.error = status.getReasonPhrase();

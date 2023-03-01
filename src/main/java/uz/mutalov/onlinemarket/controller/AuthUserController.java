@@ -2,6 +2,7 @@ package uz.mutalov.onlinemarket.controller;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import uz.mutalov.onlinemarket.controller.base.AbstractController;
 import uz.mutalov.onlinemarket.controller.base.GenericController;
@@ -9,17 +10,18 @@ import uz.mutalov.onlinemarket.controller.base.GenericCrudController;
 import uz.mutalov.onlinemarket.criteria.AuthUserCriteria;
 import uz.mutalov.onlinemarket.dto.auth.*;
 import uz.mutalov.onlinemarket.dto.cart.CartCreateDTO;
+import uz.mutalov.onlinemarket.dto.cart.CartUpdateDTO;
+import uz.mutalov.onlinemarket.dto.message.MessageShortDTO;
 import uz.mutalov.onlinemarket.response.DataDTO;
 import uz.mutalov.onlinemarket.response.ResponseEntity;
 import uz.mutalov.onlinemarket.service.AuthService;
 import uz.mutalov.onlinemarket.service.AuthUserService;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 @RestController
-@RequestMapping("/auth/")
+@RequestMapping("/api/auth/")
 @Slf4j
 public class AuthUserController extends AbstractController<AuthUserService> implements GenericCrudController<AuthUserDTO,
         AuthUserCreateDTO, AuthUserUpdateDTO>, GenericController<AuthUserDTO, AuthUserCriteria> {
@@ -62,6 +64,7 @@ public class AuthUserController extends AbstractController<AuthUserService> impl
 
     @Override
     @GetMapping("get-list")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DataDTO<List<AuthUserDTO>>> getAll(AuthUserCriteria criteria) {
         log.info("Request to User getAll");
         return service.getAll(criteria);
@@ -75,9 +78,9 @@ public class AuthUserController extends AbstractController<AuthUserService> impl
 
     @SneakyThrows
     @GetMapping(value = "/refresh-token")
-    public ResponseEntity<DataDTO<SessionDTO>> getRefreshToken(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<DataDTO<SessionDTO>> getRefreshToken(HttpServletRequest request) {
         log.info("Request to getRefreshToken");
-        return new ResponseEntity<>(new DataDTO<>(authService.getRefreshToken(request, response).getData().getData()));
+        return authService.getRefreshToken(request);
     }
 
     @PostMapping(value = "/save-to-cart")
@@ -86,10 +89,29 @@ public class AuthUserController extends AbstractController<AuthUserService> impl
         return service.saveProductToCart(dto);
     }
 
-    @PostMapping(value = "/remove-to-cart/{id}")
+    @PutMapping(value = "/change-cart-product")
+    public ResponseEntity<DataDTO<AuthUserDTO>> changeProductFromCart(@RequestBody CartUpdateDTO dto) {
+        log.info("Request to User changeProductToCart");
+        return service.changeProductToCart(dto);
+    }
+
+    @DeleteMapping(value = "/remove-from-cart/{id}")
     public ResponseEntity<DataDTO<Integer>> removeProductFromCart(@PathVariable Integer id) {
         log.info("Request to Product from User Cart");
         return service.removeProductFromCart(id);
     }
+
+    @PostMapping(value = "/select-all-cart/{select}")
+    public ResponseEntity<DataDTO<Boolean>> selectAllCart(@PathVariable Boolean select) {
+        log.info("Request to save Delivered Order  from User Cart");
+        return service.selectAllCart(select);
+    }
+
+    @GetMapping(value = "/online-users")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<DataDTO<List<MessageShortDTO>>> online() {
+        return authService.getOnlineUsers();
+    }
+
 
 }

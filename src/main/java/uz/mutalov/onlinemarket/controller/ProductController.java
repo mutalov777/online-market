@@ -1,5 +1,7 @@
 package uz.mutalov.onlinemarket.controller;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import uz.mutalov.onlinemarket.controller.base.AbstractController;
 import uz.mutalov.onlinemarket.controller.base.GenericController;
@@ -15,7 +17,8 @@ import uz.mutalov.onlinemarket.service.ProductService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/product")
+@RequestMapping("/api/product")
+@Slf4j
 public class ProductController extends AbstractController<ProductService>
         implements GenericController<ProductDTO, ProductCriteria>,
         GenericCrudController<ProductDTO, ProductCreateDTO, ProductUpdateDTO> {
@@ -33,23 +36,27 @@ public class ProductController extends AbstractController<ProductService>
     @Override
     @GetMapping("/get-list")
     public ResponseEntity<DataDTO<List<ProductDTO>>> getAll(ProductCriteria criteria) {
+        log.info("Request for getAll Product");
         return service.getAll(criteria);
     }
 
     @Override
     @PostMapping("/create")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DataDTO<ProductDTO>> create(@RequestBody ProductCreateDTO dto) {
         return service.create(dto);
     }
 
     @Override
-    @PostMapping("/update")
+    @PutMapping("/update")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DataDTO<ProductDTO>> update(@RequestBody ProductUpdateDTO dto) {
         return service.update(dto);
     }
 
     @Override
     @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DataDTO<Long>> delete(@PathVariable Long id) {
         return service.delete(id);
     }

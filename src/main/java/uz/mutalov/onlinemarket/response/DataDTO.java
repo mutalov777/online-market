@@ -16,12 +16,12 @@ public class DataDTO<T> implements Serializable {
     private T data;
     private AppErrorDTO error;
     private boolean success;
-    private Integer totalCount;
+    private Long totalCount;
 
     public DataDTO(T data) {
         this.data = data;
         this.success = true;
-        this.totalCount = 1;
+        this.totalCount = 1L;
     }
 
     public DataDTO(AppErrorDTO error) {
@@ -29,7 +29,7 @@ public class DataDTO<T> implements Serializable {
         this.success = false;
     }
 
-    public DataDTO(T data, Integer totalCount) {
+    public DataDTO(T data, Long totalCount) {
         this.data = data;
         this.totalCount = totalCount;
         this.success = true;

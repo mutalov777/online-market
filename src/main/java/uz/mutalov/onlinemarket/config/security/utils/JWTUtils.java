@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 public class JWTUtils {
 
-    public static Integer expiry = 1800000000;
+    public static Integer expiry = Math.toIntExact(TimeUnit.HOURS.toMillis(24));
     public static String BEARER = "Bearer ";
     public static String secret = "SD784SRTED34JNBNJ@@*&p45kbNBKRIIHB@456#$%&f%&t#sxyASX345";
 

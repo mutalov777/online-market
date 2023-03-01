@@ -49,7 +49,8 @@ public class ProductCategoryService extends AbstractService<CategoryRepository, 
     public ResponseEntity<DataDTO<List<ProductCategoryDTO>>> getAll() {
         List<ProductCategory> all = repository.findAll();
         List<ProductCategoryDTO> productCategoryDTOS = mapper.toDTO(all);
-        return new ResponseEntity<>(new DataDTO<>(productCategoryDTOS, productCategoryDTOS.size()));
+        long count = repository.count();
+        return new ResponseEntity<>(new DataDTO<>(productCategoryDTOS, count));
     }
 
     private ProductCategory getCategoryById(Integer id) {

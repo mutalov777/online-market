@@ -1,11 +1,11 @@
 package uz.mutalov.onlinemarket.dto.message;
 
-import uz.mutalov.onlinemarket.dto.auth.AuthUserDTO;
-import uz.mutalov.onlinemarket.dto.base.GenericDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import uz.mutalov.onlinemarket.dto.auth.UserDTO;
+import uz.mutalov.onlinemarket.dto.base.GenericDTO;
 
 import java.time.LocalDateTime;
 
@@ -14,12 +14,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MessageDTO extends GenericDTO {
-
-    private AuthUserDTO to;
-
-    private AuthUserDTO from;
-
+    private UserDTO to;
+    private UserDTO from;
     private String text;
-
-    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private boolean view;
 }

@@ -2,11 +2,10 @@ package uz.mutalov.onlinemarket.controller;
 
 import org.springframework.web.bind.annotation.*;
 import uz.mutalov.onlinemarket.controller.base.AbstractController;
-import uz.mutalov.onlinemarket.controller.base.GenericController;
 import uz.mutalov.onlinemarket.controller.base.GenericCrudController;
-import uz.mutalov.onlinemarket.criteria.MessageCriteria;
 import uz.mutalov.onlinemarket.dto.message.MessageCreateDTO;
 import uz.mutalov.onlinemarket.dto.message.MessageDTO;
+import uz.mutalov.onlinemarket.dto.message.MessageShortDTO;
 import uz.mutalov.onlinemarket.dto.message.MessageUpdateDTO;
 import uz.mutalov.onlinemarket.response.DataDTO;
 import uz.mutalov.onlinemarket.response.ResponseEntity;
@@ -15,24 +14,22 @@ import uz.mutalov.onlinemarket.service.MessageService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/message")
-public class MessageController extends AbstractController<MessageService> implements GenericController<MessageDTO, MessageCriteria>,
-        GenericCrudController<MessageDTO,MessageCreateDTO, MessageUpdateDTO> {
+@RequestMapping("/api/message")
+public class MessageController extends AbstractController<MessageService>
+        implements GenericCrudController<MessageDTO, MessageCreateDTO, MessageUpdateDTO> {
 
     public MessageController(MessageService service) {
         super(service);
     }
 
-    @Override
     @GetMapping("/get/{id}")
-    public ResponseEntity<DataDTO<MessageDTO>> get(@PathVariable Long id) {
+    public ResponseEntity<DataDTO<List<MessageDTO>>> get(@PathVariable Long id) {
         return service.get(id);
     }
 
-    @Override
     @GetMapping("/get-list")
-    public ResponseEntity<DataDTO<List<MessageDTO>>> getAll(MessageCriteria criteria) {
-        return service.getAll(criteria);
+    public ResponseEntity<DataDTO<List<MessageShortDTO>>> getAll() {
+        return service.getAll();
     }
 
     @Override
@@ -51,5 +48,10 @@ public class MessageController extends AbstractController<MessageService> implem
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<DataDTO<Long>> delete(@PathVariable Long id) {
         return service.delete(id);
+    }
+
+    @GetMapping("/get-by-text/{text}")
+    public ResponseEntity<DataDTO<List<MessageDTO>>> getAllByText(@PathVariable String text) {
+        return service.getAllByText(text);
     }
 }

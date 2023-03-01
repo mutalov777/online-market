@@ -17,11 +17,14 @@ import java.util.List;
 @Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface ProductMapper extends GenericMapper<Product, ProductDTO, ProductCreateDTO, ProductUpdateDTO> {
     @Override
+    @Mapping(target = "category",ignore = true)
     Product fromCreateDTO(ProductCreateDTO dto);
 
     @Override
+    @Mapping(target = "category",ignore = true)
     Product fromUpdateDTO(ProductUpdateDTO dto, @MappingTarget Product entity);
     @Override
+    @Mapping(target = "category",expression = "java(entity.getCategory().getName())")
     ProductDTO toDTO(Product entity);
     @Override
     List<ProductDTO> toDTO(List<Product> entity);

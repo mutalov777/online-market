@@ -14,7 +14,7 @@ import uz.mutalov.onlinemarket.mappers.base.GenericMapper;
 import java.util.List;
 
 @Component
-@Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+@Mapper(componentModel = "spring",nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface MessageMapper extends GenericMapper<Message, MessageDTO, MessageCreateDTO, MessageUpdateDTO> {
 
     @Override

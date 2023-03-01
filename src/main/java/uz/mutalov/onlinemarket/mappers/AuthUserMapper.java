@@ -22,6 +22,7 @@ public interface AuthUserMapper extends GenericMapper<AuthUser, AuthUserDTO, Aut
     AuthUser fromCreateDTO(AuthUserCreateDTO dto);
 
     @Override
+    @Mapping(target = "password",ignore = true)
     AuthUser fromUpdateDTO(AuthUserUpdateDTO dto, @MappingTarget AuthUser entity);
 
     @Override

@@ -10,6 +10,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import uz.mutalov.onlinemarket.property.OpenApiProperties;
 import uz.mutalov.onlinemarket.property.ServerProperties;
 import uz.mutalov.onlinemarket.repository.AuthUserRepository;
@@ -32,5 +34,9 @@ public class OnlineMarketApplication {
     @Bean
     public AuditorAware<Long> auditorAware() {
         return () -> repository.getUserId(SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString());
+    }
+    @Bean
+    public SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
     }
 }

@@ -7,7 +7,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       
       hibernate:
@@ -21,3 +21,9 @@ springdoc:
     path: swagger-ui
   api-docs:
     path: /api-docs
+
+server:
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript
+    min-response-size: 1024

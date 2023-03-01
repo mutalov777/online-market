@@ -1,12 +1,13 @@
 package uz.mutalov.onlinemarket.entity;
 
-import org.hibernate.annotations.Where;
-import uz.mutalov.onlinemarket.entity.base.Auditable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Where;
+import uz.mutalov.onlinemarket.entity.base.Auditable;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.OneToOne;
@@ -26,4 +27,7 @@ public class Message extends Auditable {
     private AuthUser from;
 
     private String text;
+
+    @Column(columnDefinition = "bool default 'false'")
+    private boolean view;
 }

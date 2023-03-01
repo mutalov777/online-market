@@ -19,6 +19,8 @@ public class ProductDTO extends GenericDTO {
 
     private Integer count;
 
+    private String category;
+
     private String photo;
 
     private Boolean isCount;

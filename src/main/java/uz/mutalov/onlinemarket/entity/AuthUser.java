@@ -22,7 +22,7 @@ public class AuthUser extends Auditable {
     @Column(nullable = false)
     private String fullName;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false,unique = true)
     private String email;
 
     private String phone;
@@ -35,5 +35,7 @@ public class AuthUser extends Auditable {
 
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(inverseJoinColumns = {@JoinColumn(name = "cart_id")})
+    @OrderBy("id")
+    @Where(clause = "ordered is false")
     private List<Cart> carts;
 }

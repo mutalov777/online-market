@@ -14,5 +14,6 @@ import java.util.Optional;
 public interface ProductRepository extends JpaRepository<Product, Long>, BaseRepository {
     @Query(value = "select c.products from ProductCategory c where c.name=:category")
     Optional<List<Product>> findAllByCategoryName(String category, Pageable pageable);
+    @Query(value = "from Product c where upper(c.name) like :name")
     Optional<List<Product>> findAllByName(String name, Pageable pageable);
 }

@@ -10,6 +10,7 @@ import uz.mutalov.onlinemarket.dto.auth.AuthUserCreateDTO;
 import uz.mutalov.onlinemarket.dto.auth.AuthUserDTO;
 import uz.mutalov.onlinemarket.dto.auth.AuthUserUpdateDTO;
 import uz.mutalov.onlinemarket.dto.cart.CartCreateDTO;
+import uz.mutalov.onlinemarket.dto.cart.CartUpdateDTO;
 import uz.mutalov.onlinemarket.entity.AuthUser;
 import uz.mutalov.onlinemarket.entity.Cart;
 import uz.mutalov.onlinemarket.entity.Product;
@@ -25,6 +26,8 @@ import uz.mutalov.onlinemarket.service.base.GenericCrudService;
 import uz.mutalov.onlinemarket.service.base.GenericService;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
 public class AuthUserService extends AbstractService<AuthUserRepository, AuthUserMapper>
@@ -55,6 +58,9 @@ public class AuthUserService extends AbstractService<AuthUserRepository, AuthUse
     public ResponseEntity<DataDTO<AuthUserDTO>> update(AuthUserUpdateDTO dto) {
         AuthUser user = getAuthUserById(dto.getId());
         AuthUser authUser = mapper.fromUpdateDTO(dto, user);
+        if (Objects.nonNull(dto.getOldPassword()) && passwordEncoder.matches(dto.getOldPassword(), user.getPassword())) {
+            authUser.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+        }
         AuthUser save = repository.save(authUser);
         AuthUserDTO authUserDTO = mapper.toDTO(save);
         return new ResponseEntity<>(new DataDTO<>(authUserDTO));
@@ -80,7 +86,8 @@ public class AuthUserService extends AbstractService<AuthUserRepository, AuthUse
         PageRequest of = PageRequest.of(criteria.getPage(), criteria.getSize());
         List<AuthUser> content = repository.findAll(of).getContent();
         List<AuthUserDTO> authUserDTOS = mapper.toDTO(content);
-        return new ResponseEntity<>(new DataDTO<>(authUserDTOS, authUserDTOS.size()));
+        long count = repository.count();
+        return new ResponseEntity<>(new DataDTO<>(authUserDTOS,count));
     }
 
     public AuthUser getAuthUserById(Long id) {
@@ -89,12 +96,39 @@ public class AuthUserService extends AbstractService<AuthUserRepository, AuthUse
     }
 
     public ResponseEntity<DataDTO<AuthUserDTO>> saveProductToCart(CartCreateDTO dto) {
+        AtomicBoolean check = new AtomicBoolean(false);
         Product product = productRepository.findById(dto.getProductId())
                 .orElseThrow(() -> new NotFoundException("Product not found"));
         AuthUser user = getAuthUserByEmail();
         Cart cart = new Cart(dto.getAmount(), product);
         List<Cart> carts = user.getCarts();
-        carts.add(cart);
+        carts.stream()
+                .filter(item -> Objects.equals(item.getProduct().getId(), dto.getProductId()))
+                .forEach(item -> {
+                    item.setAmount((item.getAmount() * 10 + dto.getAmount() * 10) / 10);
+                    check.set(true);
+                });
+        if (!check.get()) {
+            carts.add(cart);
+        }
+        user.setCarts(carts);
+        AuthUser save = repository.save(user);
+        AuthUserDTO authUserDTO = mapper.toDTO(save);
+        return new ResponseEntity<>(new DataDTO<>(authUserDTO));
+    }
+
+    public ResponseEntity<DataDTO<AuthUserDTO>> changeProductToCart(CartUpdateDTO dto) {
+        AuthUser user = getAuthUserByEmail();
+        List<Cart> carts = user.getCarts();
+        carts.stream()
+                .filter(item -> Objects.equals(item.getId(), dto.getId()))
+                .forEach(item -> {
+                    if (Objects.nonNull(dto.getAmount()))
+                        item.setAmount(dto.getAmount());
+                    else if (Objects.nonNull(dto.getChecked())) {
+                        item.setChecked(dto.getChecked());
+                    }
+                });
         user.setCarts(carts);
         AuthUser save = repository.save(user);
         AuthUserDTO authUserDTO = mapper.toDTO(save);
@@ -117,5 +151,19 @@ public class AuthUserService extends AbstractService<AuthUserRepository, AuthUse
                 .findByEmail(email)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
+    }
+
+
+    public ResponseEntity<DataDTO<Boolean>> selectAllCart(Boolean select) {
+        AuthUser user = getAuthUserByEmail();
+        List<Cart> carts = user.getCarts();
+        if (select) {
+            carts.forEach(item -> item.setChecked(true));
+        } else {
+            carts.forEach(item -> item.setChecked(false));
+        }
+        user.setCarts(carts);
+        repository.save(user);
+        return new ResponseEntity<>(new DataDTO<>(true));
     }
 }

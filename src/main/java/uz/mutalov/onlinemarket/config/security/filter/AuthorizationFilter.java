@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import uz.mutalov.onlinemarket.config.security.utils.JWTUtils;
 import uz.mutalov.onlinemarket.entity.AuthUser;
+import uz.mutalov.onlinemarket.enums.Role;
 import uz.mutalov.onlinemarket.service.AuthService;
 
 import javax.servlet.FilterChain;
@@ -46,7 +47,6 @@ public class AuthorizationFilter extends OncePerRequestFilter {
                     throw new UsernameNotFoundException("User not found");
                 }
                 String[] roles = decodedJWT.getClaim("roles").asArray(String.class);
-
                 Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
                 Arrays.stream(roles).forEach(role -> authorities.add(new SimpleGrantedAuthority(role)));
                 UsernamePasswordAuthenticationToken authenticationToken =

@@ -14,18 +14,21 @@ import javax.persistence.*;
 @AllArgsConstructor
 @Entity
 public class Cart implements BaseEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
     private Double amount;
-
     @OneToOne(cascade = CascadeType.PERSIST)
     private Product product;
+    @Column(columnDefinition = "bool default 'false'")
+    private boolean ordered;
+    @Column(columnDefinition = "bool default 'false'")
+    private boolean checked;
 
     public Cart(Double amount, Product product) {
         this.amount = amount;
         this.product = product;
     }
+
+
 }

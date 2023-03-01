@@ -73,6 +73,7 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
                 .withSubject(user.getUsername())
                 .withExpiresAt(expiryForRefreshToken)
                 .withIssuer(request.getRequestURL().toString())
+                .withClaim("roles", authorities)
                 .sign(JWTUtils.getAlgorithm());
         SessionDTO sessionDto = SessionDTO.builder()
                 .accessToken(accessToken)

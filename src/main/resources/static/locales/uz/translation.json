@@ -1,0 +1,28 @@
+{
+  "name":"Market",
+  "category": {
+    "Fruits": "Mevalalar",
+    "Vegatables": "Sabsavotlar",
+    "Chocolates": "Shirinliklar"
+  },
+  "menu": "Asosiy",
+  "how to buy": "Qanday xariq qilish mumkin?",
+  "faq": "FAQ",
+  "term to use": "Foydalanish qoidalari",
+  "contact": "Aloqa",
+  "cart": "Savat",
+  "amount":"Ushbu yetkazib beruvchi uchun miqdor",
+  "total": "Umumiy",
+  "choose all": "Hammasi",
+  "delete": "O'chirish",
+  "checkout": "Buyurmaga",
+  "sign in": "Kirish",
+  "sign out": "Ro'yxatdan o'tish",
+  "search": "Qidiruv...",
+  "see all": "Ko'rish...",
+  "message": "Xabar yuborish...",
+  "profile": "Profil",
+  "logout": "Chiqish",
+  "admin-panel": "Admin Panel"
+
+}

@@ -6,9 +6,12 @@ import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import uz.mutalov.onlinemarket.dto.admin.*;
 import uz.mutalov.onlinemarket.exceptions.NotFoundException;
+import uz.mutalov.onlinemarket.repository.AuthUserRepository;
 import uz.mutalov.onlinemarket.response.DataDTO;
 import uz.mutalov.onlinemarket.response.ResponseEntity;
 import uz.mutalov.onlinemarket.service.base.BaseService;
@@ -17,11 +20,18 @@ import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class FileService implements BaseService {
+
+    private final AuthUserRepository authUserRepository;
+
 
     private String uploadFile(File file, String fileName) throws IOException {
         BlobId blobId = BlobId.of("picturesaver-61bc7.appspot.com", fileName);
@@ -84,6 +94,34 @@ public class FileService implements BaseService {
                 """;
         return new ByteArrayInputStream(credentials.getBytes
                 (StandardCharsets.UTF_8));
+    }
+
+    public ResponseEntity<DataDTO<AdminPanelData>> getAdminPanelData() {
+        AdminPanelData adminPanelData = new AdminPanelData();
+        List<UserData> userData = authUserRepository.findWeeklyUserCount().orElseThrow();
+        List<Long> longs = authUserRepository.findDailyOrders().orElseThrow();
+        Today today = new Today(Math.toIntExact(longs.get(0)), Math.toIntExact(longs.get(1)), Math.toIntExact(longs.get(2)));
+        adminPanelData.setToday(today);
+        List<ChartData> chartData = authUserRepository.findWeeklyCartData().orElseThrow();
+        List<Chart> charts = new ArrayList<>();
+        for (int i = 7; i >= 0; i--) {
+            LocalDateTime time = LocalDateTime.now().minusDays(i);
+            Chart chart = new Chart();
+            chart.setDate(time);
+            userData.forEach(userData1 -> {
+                if (userData1.getDate().getDayOfMonth()==(time.getDayOfMonth())) {
+                    chart.setUserCount(chart.getUserCount() + Math.toIntExact(userData1.getUserCount()));
+                }
+            });
+            chartData.forEach(chartData1 -> {
+                if (chartData1.getDate().getDayOfMonth()==(time.getDayOfMonth())) {
+                    chart.setOrderCount(chart.getOrderCount() + Math.toIntExact(chartData1.getOrderCount()));
+                }
+            });
+            charts.add(chart);
+        }
+        adminPanelData.setData(charts);
+        return new ResponseEntity<>(new DataDTO<>(adminPanelData));
     }
 }
 

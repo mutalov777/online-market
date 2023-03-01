@@ -32,7 +32,7 @@ public class Product extends Auditable {
     @Column
     private Integer count;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     private ProductCategory category;
     @Column
     private String photo;

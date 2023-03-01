@@ -1,9 +1,9 @@
 package uz.mutalov.onlinemarket.service;
 
-import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import uz.mutalov.onlinemarket.criteria.ProductCriteria;
 import uz.mutalov.onlinemarket.dto.product.ProductCreateDTO;
@@ -50,9 +50,10 @@ public class ProductService extends AbstractService<ProductRepository, ProductMa
                     .orElseThrow(() -> new NotFoundException("Category not found"));
             productCategory.addProducts(product);
             categoryRepository.save(productCategory);
-        }
+        }else repository.save(product);
         return mapper.toDTO(product);
     }
+
     @Override
     public ResponseEntity<DataDTO<ProductDTO>> update(ProductUpdateDTO dto) {
         Product product = getProductById(dto.getId());
@@ -64,7 +65,8 @@ public class ProductService extends AbstractService<ProductRepository, ProductMa
     @Override
     public ResponseEntity<DataDTO<Long>> delete(Long dto) {
         Product product = getProductById(dto);
-        repository.delete(product);
+        product.setDeleted(true);
+        repository.save(product);
         return new ResponseEntity<>(new DataDTO<>(dto));
     }
 
@@ -78,18 +80,20 @@ public class ProductService extends AbstractService<ProductRepository, ProductMa
     @Override
     public ResponseEntity<DataDTO<List<ProductDTO>>> getAll(ProductCriteria criteria) {
         List<Product> products;
-        Pageable of = PageRequest.of(criteria.getPage(), criteria.getSize());
+        Sort id =Sort.by(Sort.Direction.ASC,"id");
+        Pageable of = PageRequest.of(criteria.getPage(), criteria.getSize(),id);
         if (Objects.nonNull(criteria.getCategory())) {
             products = repository.findAllByCategoryName(criteria.getCategory(), of)
                     .orElseThrow(() -> new NotFoundException("Product not found by this criteria"));
         } else if (Objects.nonNull(criteria.getName())) {
-            products = repository.findAllByName(criteria.getName(), of)
+            products = repository.findAllByName(criteria.getName().toUpperCase() + "%", of)
                     .orElseThrow(() -> new NotFoundException("Product not found by this criteria"));
         } else {
             products = repository.findAll(of).getContent();
         }
         List<ProductDTO> productDTOS = mapper.toDTO(products);
-        return new ResponseEntity<>(new DataDTO<>(productDTOS));
+        long count = repository.count();
+        return new ResponseEntity<>(new DataDTO<>(productDTOS, count));
     }
 
 
